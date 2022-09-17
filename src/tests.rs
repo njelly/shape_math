@@ -84,3 +84,61 @@ fn get_bounding_aabb_test() {
         assert!(aabb_contains_point(&min, &max, &p));
     }
 }
+
+#[test]
+fn circle_contains_point_test() {
+    let center = Vec2::new(0., 0.);
+    let r = 1.;
+
+    // a circle always contains it's center
+    assert!(circle_contains_point(&center, &r, &center));
+
+    // a circle contains a point on it's perimeter
+    assert!(circle_contains_point(&center, &r, &Vec2::new(r, 0.)));
+
+    // a circle does not contain a point barely beyond its radius
+    assert!(!circle_contains_point(
+        &center,
+        &r,
+        &Vec2::new(r + f32::EPSILON, 0.)
+    ));
+}
+
+#[test]
+fn circle_intersects_aabb_test() {
+    let min_a = Vec2::new(0., 0.);
+    let max_a = Vec2::new(1., 1.);
+    let min_b = Vec2::new(1., 1.);
+    let max_b = Vec2::new(2., 2.);
+    let center = Vec2::new(0.5, 1.1);
+    let r: f32 = 0.2;
+
+    assert!(circle_intersects_aabb(&center, &r, &min_a, &max_a));
+    assert!(!circle_intersects_aabb(&center, &r, &min_b, &max_b));
+}
+
+#[test]
+fn closest_point_on_line_segment_test() {
+    let a = Vec2::new(0., 0.);
+    let b = Vec2::new(1., 1.);
+    let c = Vec2::new(0.5, 0.5); // a point half-way between a and b
+    let d = c + Vec2::new(-1., 1.) * 0.1; // a point a bit off the line perpandicular to ab
+
+    // the points that define a line segment ought to be the closest point on the line segment
+    assert!(closest_point_on_line_segment(&a, &b, &a) == a);
+    assert!(closest_point_on_line_segment(&a, &b, &b) == b);
+
+    assert!(closest_point_on_line_segment(&a, &b, &c) == c);
+    assert!(closest_point_on_line_segment(&a, &b, &d) == c);
+    assert!(closest_point_on_line_segment(&a, &b, &Vec2::new(f32::MAX, f32::MAX)) == b);
+    assert!(closest_point_on_line_segment(&a, &b, &Vec2::new(f32::MIN, f32::MIN)) == a);
+}
+
+#[test]
+fn point_is_on_left_side_of_line_test() {
+    let a = Vec2::new(0., 0.);
+    let b = Vec2::new(0.5, 1.);
+
+    assert!(point_is_on_left_side_of_line(&a, &b, &Vec2::new(0., 1.)));
+    assert!(!point_is_on_left_side_of_line(&a, &b, &Vec2::new(1., 0.)));
+}

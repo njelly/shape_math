@@ -40,3 +40,42 @@ pub fn get_bounding_aabb(points: &Vec<Vec2>) -> (Vec2, Vec2) {
 
     (min, max)
 }
+
+pub fn circle_contains_point(center: &Vec2, radius: &f32, p: &Vec2) -> bool {
+    (*p - *center).length_squared() <= radius * radius
+}
+
+pub fn circle_intersects_aabb(center: &Vec2, r: &f32, aabb_min: &Vec2, aabb_max: &Vec2) -> bool {
+    if aabb_contains_point(&aabb_min, &aabb_max, &center) {
+        return true;
+    }
+
+    let vertices = get_vertices_aabb(&aabb_min, &aabb_max);
+    for (i, v) in vertices.iter().enumerate() {
+        let next_index = (i + 1) % vertices.len();
+        let closest_point_on_edge =
+            closest_point_on_line_segment(v, &vertices[next_index], &center);
+        if circle_contains_point(&center, &r, &closest_point_on_edge) {
+            return true;
+        }
+    }
+
+    false
+}
+
+pub fn closest_point_on_line_segment(a: &Vec2, b: &Vec2, p: &Vec2) -> Vec2 {
+    let ap = *p - *a;
+    let ab = *b - *a;
+    let dist = ap.dot(ab) / ab.length_squared();
+    if dist <= 0. {
+        *a
+    } else if dist >= 1. {
+        *b
+    } else {
+        return *a + ab * dist;
+    }
+}
+
+pub fn point_is_on_left_side_of_line(a: &Vec2, b: &Vec2, p: &Vec2) -> bool {
+    (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x) > 0.
+}
