@@ -118,6 +118,23 @@ fn circle_intersects_aabb_test() {
 }
 
 #[test]
+fn circle_intersects_circle_test() {
+    let center_a = Vec2::new(0., 0.);
+    let r_a: f32 = 0.5;
+    let center_b = Vec2::new(r_a, 0.);
+    let center_c = Vec2::new(2., 2.);
+    let r_c: f32 = 0.4;
+
+    // a circle intersects itself
+    assert!(circle_intersects_circle(&center_a, &r_a, &center_a, &r_a));
+
+    // tangent circles count as intersecting
+    assert!(circle_intersects_circle(&center_a, &r_a, &center_b, &r_a));
+
+    assert!(!circle_intersects_circle(&center_a, &r_a, &center_c, &r_c))
+}
+
+#[test]
 fn closest_point_on_line_segment_test() {
     let a = Vec2::new(0., 0.);
     let b = Vec2::new(1., 1.);
@@ -141,4 +158,55 @@ fn point_is_on_left_side_of_line_test() {
 
     assert!(point_is_on_left_side_of_line(&a, &b, &Vec2::new(0., 1.)));
     assert!(!point_is_on_left_side_of_line(&a, &b, &Vec2::new(1., 0.)));
+}
+
+#[test]
+fn get_longest_edge_of_polygon_test() {
+    // this should fail because the vertices vec has less than 3 elements
+    match get_longest_edge_of_polygon(&vec![Vec2::new(0., 0.), Vec2::new(0., 1.)]) {
+        Ok(_) => assert!(false),
+        Err(_) => assert!(true),
+    };
+
+    // the longest edge starts with the point on the second index
+    match get_longest_edge_of_polygon(&vec![
+        Vec2::new(0., 0.),
+        Vec2::new(0.5, 0.2),
+        Vec2::new(1., 0.),
+    ]) {
+        Ok(i) => assert!(i == 2),
+        Err(_) => assert!(false),
+    }
+}
+
+#[test]
+fn line_intersects_line_test() {
+    let a_start = Vec2::new(0., 0.);
+    let a_end = Vec2::new(0., 1.);
+    let b_start = Vec2::new(1., 0.);
+    let b_end = Vec2::new(1., 3.);
+    let c_start = Vec2::new(0.5, 0.5);
+    let c_end = Vec2::new(3., 3.);
+
+    let (a_intersects_b, _) = line_intersects_line(&a_start, &a_end, &b_start, &b_end);
+    let (b_intersects_a, _) = line_intersects_line(&b_start, &b_end, &a_start, &a_end);
+    let (a_intersects_c, a_intersects_c_point) =
+        line_intersects_line(&a_start, &a_end, &c_start, &c_end);
+    let (c_intersects_a, c_intersects_a_point) =
+        line_intersects_line(&c_start, &c_end, &a_start, &a_end);
+    let (b_intersects_c, b_intersects_c_point) =
+        line_intersects_line(&b_start, &b_end, &c_start, &c_end);
+    let (c_intersects_b, c_intersects_b_point) =
+        line_intersects_line(&c_start, &c_end, &b_start, &b_end);
+
+    assert!(!a_intersects_b);
+    assert!(!b_intersects_a);
+    assert!(a_intersects_c);
+    assert!(c_intersects_a);
+    assert!(a_intersects_c_point == Vec2::new(0., 0.));
+    assert!(a_intersects_c_point == c_intersects_a_point);
+    assert!(b_intersects_c);
+    assert!(c_intersects_b);
+    assert!(b_intersects_c_point == Vec2::new(1., 1.));
+    assert!(b_intersects_c_point == c_intersects_b_point);
 }
