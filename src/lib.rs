@@ -135,217 +135,86 @@ pub fn line_intersects_line(a1: &Vec2, b1: &Vec2, a2: &Vec2, b2: &Vec2) -> (bool
     (true, intersection)
 }
 
-/*public static bool LineIntersectsLine(Vector2 a1, Vector2 b1, Vector2 a2, Vector2 b2,
-    out Vector2 intersection, float tolerance = 0.0001f)
-{
-    intersection = default;
-
-    var x1 = a1.X;
-    var x2 = b1.X;
-    var x3 = a2.X;
-    var x4 = b2.X;
-
-    var y1 = a1.Y;
-    var y2 = b1.Y;
-    var y3 = a2.Y;
-    var y4 = b2.Y;
-
-    // equations of the form x = c (two vertical lines)
-    if (MathF.Abs(x1 - x2) < tolerance && MathF.Abs(x3 - x4) < tolerance && MathF.Abs(x1 - x3) < tolerance)
-        return false;
-
-    //equations of the form y=c (two horizontal lines)
-    if (MathF.Abs(y1 - y2) < tolerance && MathF.Abs(y3 - y4) < tolerance && MathF.Abs(y1 - y3) < tolerance)
-        return false;
-
-    //equations of the form x=c (two vertical parallel lines)
-    if (MathF.Abs(x1 - x2) < tolerance && MathF.Abs(x3 - x4) < tolerance)
-        return false;
-
-    //equations of the form y=c (two horizontal parallel lines)
-    if (MathF.Abs(y1 - y2) < tolerance && MathF.Abs(y3 - y4) < tolerance)
-        return false;
-
-    //general equation of line is y = mx + c where m is the slope
-    //assume equation of line 1 as y1 = m1x1 + c1
-    //=> -m1x1 + y1 = c1 ----(1)
-    //assume equation of line 2 as y2 = m2x2 + c2
-    //=> -m2x2 + y2 = c2 -----(2)
-    //if line 1 and 2 intersect then x1=x2=x & y1=y2=y where (x,y) is the intersection p
-    //so we will get below two equations
-    //-m1x + y = c1 --------(3)
-    //-m2x + y = c2 --------(4)
-
-    float x, y;
-
-    //lineA is vertical x1 = x2
-    //slope will be infinity
-    //so lets derive another solution
-    if (MathF.Abs(x1 - x2) < tolerance)
-    {
-        //compute slope of line 2 (m2) and c2
-        var m2 = (y4 - y3) / (x4 - x3);
-        var c2 = -m2 * x3 + y3;
-
-        //equation of vertical line is x = c
-        //if line 1 and 2 intersect then x1=c1=x
-        //subsitute x=x1 in (4) => -m2x1 + y = c2
-        // => y = c2 + m2x1
-        x = x1;
-        y = c2 + m2 * x1;
-    }
-    //other is vertical x3 = x4
-    //slope will be infinity
-    //so lets derive another solution
-    else if (MathF.Abs(x3 - x4) < tolerance)
-    {
-        //compute slope of line 1 (m1) and c2
-        var m1 = (y2 - y1) / (x2 - x1);
-        var c1 = -m1 * x1 + y1;
-
-        //equation of vertical line is x = c
-        //if line 1 and 2 intersect then x3=c3=x
-        //subsitute x=x3 in (3) => -m1x3 + y = c1
-        // => y = c1 + m1x3
-        x = x3;
-        y = c1 + m1 * x3;
-    }
-    //lineA & other are not vertical
-    //(could be horizontal we can handle it with slope = 0)
-    else
-    {
-        //compute slope of line 1 (m1) and c2
-        var m1 = (y2 - y1) / (x2 - x1);
-        var c1 = -m1 * x1 + y1;
-
-        //compute slope of line 2 (m2) and c2
-        var m2 = (y4 - y3) / (x4 - x3);
-        var c2 = -m2 * x3 + y3;
-
-        //solving equations (3) & (4) => x = (c1-c2)/(m2-m1)
-        //plugging x value in equation (4) => y = c2 + m2 * x
-        x = (c1 - c2) / (m2 - m1);
-        y = c2 + m2 * x;
-
-        //verify by plugging intersection p (x, y)
-        //in orginal equations (1) & (2) to see if they intersect
-        //otherwise x,y values will not be finite and will fail this check
-        if (!(MathF.Abs(-m1 * x + y - c1) < tolerance
-              && MathF.Abs(-m2 * x + y - c2) < tolerance))
-        {
-            //return default (no intersection)
-            return false;
-        }
+pub fn line_intersects_line_segment(a1: &Vec2, b1: &Vec2, a2: &Vec2, b2: &Vec2) -> (bool, Vec2) {
+    let (does_intersect, intersection) = line_intersects_line(a1, b1, a2, b2);
+    if !does_intersect {
+        return (false, intersection);
     }
 
-    //x,y can intersect outside the line segment since line is infinitely long
-    //so finally check if x, y is within both the line segments
-    intersection = new Vector2(x, y);
-    return true;
-} */
+    let min = Vec2::new(a2.x.min(b2.x), a2.y.min(b2.y));
+    let max = Vec2::new(a2.x.max(b2.x), a2.y.max(b2.y));
 
-//pub fn get_circle_from_triangle(points: &Vec<Vec2>) -> Result<(Vec2, f32), String> {
-//    if points.len() != 3 {
-//        return Err(String::from("vertices vec must contain exactly 3 elements"));
-//    }
-//
-//    let longest_edge = get_longest_edge_of_polygon(points).unwrap();
-//    let a = (longest_edge + 1) % 3;
-//    let b = (longest_edge + 2) % 3;
-//    let a_to_b_middle = (points[a] + points[b]) / 2.;
-//    let b_to_c_middle = (points[b] + points[longest_edge]) / 2.;
-//    let perp_a = (Vec2::new(0., 1.)).rotate(a_to_b_middle - points[a]) + a_to_b_middle;
-//    let perp_b = (Vec2::new(0., 1.)).rotate(b_to_c_middle - points[b]) + b_to_c_middle;
-//}
+    (aabb_contains_point(&min, &max, &intersection), intersection)
+}
 
-/*
-public static unsafe void GetCircleFromTriangleUnsafe(Vector2* points, out Vector2 circleCenter,
-    out float circleRadius)
-{
-    GetLongestEdgeOfPolygonUnsafe(points, 3, out var longestEdge);
+pub fn line_segment_intersects_line_segment(
+    a1: &Vec2,
+    b1: &Vec2,
+    a2: &Vec2,
+    b2: &Vec2,
+) -> (bool, Vec2) {
+    let (does_intersect, intersection) = line_intersects_line(a1, b1, a2, b2);
+    if !does_intersect {
+        return (false, intersection);
+    }
 
-    var a = (longestEdge + 1) % 3;
-    var b = (longestEdge + 2) % 3;
-    var aToBMiddle = (points[a] + points[b]) / 2f;
-    var bToCMiddle = (points[b] + points[longestEdge]) / 2f;
-    var perpA = (aToBMiddle - points[a]).RotatedByRadians(MathF.PI / 2f) + aToBMiddle;
-    var perpB = (bToCMiddle - points[b]).RotatedByRadians(MathF.PI / 2f) + bToCMiddle;
+    let min = Vec2::new(a1.x.min(b1.x), a1.y.min(b1.y));
+    let max = Vec2::new(a1.x.max(b1.x), a1.y.max(b1.y));
 
-    LineIntersectsLine(aToBMiddle, perpA, bToCMiddle, perpB, out circleCenter);
+    (aabb_contains_point(&min, &max, &intersection), intersection)
+}
 
-    circleRadius = (points[0] - circleCenter).Length();
-} */
+pub fn get_circle_from_triangle(vertices: &Vec<Vec2>) -> Result<(Vec2, f32), String> {
+    if vertices.len() != 3 {
+        return Err(String::from("vertices vec must contain exactly 3 elements"));
+    }
 
-/*
-pub fn get_bounding_circle(points: Vec<Vec2>) -> (Vec2, f32) {
-    let points_on_cicle: Vec<Vec2> = Vec::with_capacity(3);
+    let longest_edge = get_longest_edge_of_polygon(vertices).unwrap();
+    let a = (longest_edge + 1) % 3;
+    let b = (longest_edge + 2) % 3;
+    let a_to_b_middle = (vertices[a] + vertices[b]) / 2.;
+    let b_to_c_middle = (vertices[b] + vertices[longest_edge]) / 2.;
+    let perp_a = (Vec2::new(0., 1.)).rotate(a_to_b_middle - vertices[a]) + a_to_b_middle;
+    let perp_b = (Vec2::new(0., 1.)).rotate(b_to_c_middle - vertices[b]) + b_to_c_middle;
 
-    fn welzl(num_unchecked: usize, num_points_on_cicle: usize) -> (Vec2, f32) {
+    let (_, circle_center) = line_intersects_line(&a_to_b_middle, &perp_a, &b_to_c_middle, &perp_b);
+    let circle_radius = (vertices[0] - circle_center).length();
+
+    Ok((circle_center, circle_radius))
+}
+
+pub fn get_bounding_circle(points: &Vec<Vec2>) -> (Vec2, f32) {
+    let mut points_on_circle: Vec<Vec2> = Vec::with_capacity(3);
+
+    fn welzl(
+        num_unchecked: usize,
+        num_points_on_cicle: usize,
+        points_on_circle: &mut Vec<Vec2>,
+    ) -> (Vec2, f32) {
         if num_unchecked == 0 || num_points_on_cicle == 3 {
-            return calculate_points_on_circle(num_points_on_cicle);
+            return calculate_circle(num_points_on_cicle, points_on_circle);
         }
+
+        let p = points_on_circle[num_unchecked - 1];
+        let (c, r) = welzl(num_unchecked - 1, num_points_on_cicle, points_on_circle);
+        if circle_contains_point(&c, &r, &p) {
+            return (c, r);
+        }
+
+        points_on_circle[num_points_on_cicle] = p;
+        welzl(num_unchecked, num_points_on_cicle, points_on_circle)
     }
 
-    fn calculate_circle(num_points_on_circle: usize) -> (Vec2, f32) {
-        let c = Vec2::default();
-        let r: f32 = 0.;
-
+    fn calculate_circle(num_points_on_circle: usize, points_on_circle: &Vec<Vec2>) -> (Vec2, f32) {
         return match num_points_on_circle {
             1 => (points_on_circle[0], 0.),
-            2 => ((points_on_circle[1] + points_on_circle[0]) / .2, (points_on_circle[1] - points_on_circle[0]).len() / .2),
-            3 =>
-        }
+            2 => (
+                (points_on_circle[1] + points_on_circle[0]) / 2.,
+                (points_on_circle[1] - points_on_circle[0]).length() / 2.,
+            ),
+            _ => get_circle_from_triangle(points_on_circle).unwrap(),
+        };
     }
+
+    welzl(points.len(), 0, &mut points_on_circle)
 }
-*/
-
-/*
-       /// <summary>
-       /// Implements Welzl's algorithm for finding the smallest bounding circle containing a set of points in O(n) time.
-       /// This website was very helpful: http://www.sunshine2k.de/coding/java/Welzl/Welzl.html
-       /// </summary>
-       public static unsafe void GetBoundingCircleUnsafe(Vector2* points, int length, out Vector2 circleCenter,
-           out float circleRadius)
-       {
-           var pointsOnCircle = stackalloc Vector2[3];
-
-           welzl(length, 0, out circleCenter, out circleRadius);
-
-           void welzl(int numUnchecked, int numPointsOnCircle, out Vector2 c, out float r)
-           {
-               if (numUnchecked <= 0 || numPointsOnCircle == 3)
-               {
-                   calculateCircle(numPointsOnCircle, out c, out r);
-                   return;
-               }
-
-               var p = points[numUnchecked - 1];
-               welzl(numUnchecked - 1, numPointsOnCircle, out c, out r);
-               if (CircleContainsPoint(c, r, p))
-                   return;
-
-               pointsOnCircle[numPointsOnCircle] = p;
-               welzl(numUnchecked - 1, numPointsOnCircle + 1, out c, out r);
-           }
-
-           void calculateCircle(int numPointsOnCircle, out Vector2 c, out float r)
-           {
-               c = default;
-               r = default;
-               switch (numPointsOnCircle)
-               {
-                   case 1:
-                       c = pointsOnCircle[0];
-                       r = 0f;
-                       break;
-                   case 2:
-                       c = (pointsOnCircle[1] + pointsOnCircle[0]) / 2f;
-                       r = (pointsOnCircle[1] - pointsOnCircle[0]).Length() / 2f;
-                       break;
-                   case 3:
-                       GetCircleFromTriangleUnsafe(pointsOnCircle, out c, out r);
-                       break;
-               }
-           }
-       }
-*/

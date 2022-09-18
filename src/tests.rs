@@ -210,3 +210,16 @@ fn line_intersects_line_test() {
     assert!(b_intersects_c_point == Vec2::new(1., 1.));
     assert!(b_intersects_c_point == c_intersects_b_point);
 }
+
+#[test]
+fn get_circle_from_triangle_test() {
+    let triangle = vec![
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.5, 0.86602540378),
+        Vec2::new(1., 0.),
+    ];
+
+    let (circle_center, circle_radius) = get_circle_from_triangle(&triangle).unwrap();
+    assert!((circle_center - Vec2::new(0.5, 0.28867513)).length() <= f32::EPSILON);
+    assert!((circle_radius - 0.5773502).abs() <= f32::EPSILON);
+}
