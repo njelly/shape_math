@@ -93,8 +93,8 @@ fn circle_contains_point_test() {
     // a circle always contains it's center
     assert!(circle_contains_point(center, r, center));
 
-    // a circle DOES NOT contains a point on it's circumference
-    assert!(!circle_contains_point(center, r, Vec2::new(r, 0.)));
+    // a circle contains a point on it's circumference
+    assert!(circle_contains_point(center, r, Vec2::new(r, 0.)));
 
     // a circle does not contain a point barely beyond its radius
     assert!(!circle_contains_point(

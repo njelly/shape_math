@@ -37,7 +37,7 @@ pub fn get_bounding_aabb(points: &Vec<Vec2>) -> (Vec2, Vec2) {
 }
 
 pub fn circle_contains_point(center: Vec2, radius: f32, p: Vec2) -> bool {
-    (p - center).length_squared() < radius * radius
+    (p - center).length_squared() <= radius * radius
 }
 
 pub fn circle_intersects_aabb(center: Vec2, r: f32, aabb_min: Vec2, aabb_max: Vec2) -> bool {
