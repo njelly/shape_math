@@ -7,23 +7,23 @@ fn aabb_contains_point_test() {
     let max = Vec2::new(1., 1.);
 
     // all aabb's should contain their own min and max
-    assert!(aabb_contains_point(&min, &max, &min));
-    assert!(aabb_contains_point(&min, &max, &max));
+    assert!(aabb_contains_point(min, max, min));
+    assert!(aabb_contains_point(min, max, max));
 
     // point inside
-    assert!(aabb_contains_point(&min, &max, &Vec2::new(0.5, 0.5)));
+    assert!(aabb_contains_point(min, max, Vec2::new(0.5, 0.5)));
 
     // point outside to the left
-    assert!(!aabb_contains_point(&min, &max, &Vec2::new(-1., 0.5)));
+    assert!(!aabb_contains_point(min, max, Vec2::new(-1., 0.5)));
 
     // point outside to the right
-    assert!(!aabb_contains_point(&min, &max, &Vec2::new(2., 0.5)));
+    assert!(!aabb_contains_point(min, max, Vec2::new(2., 0.5)));
 
     // point outside above
-    assert!(!aabb_contains_point(&min, &max, &Vec2::new(0.5, 2.)));
+    assert!(!aabb_contains_point(min, max, Vec2::new(0.5, 2.)));
 
     // point outside below
-    assert!(!aabb_contains_point(&min, &max, &Vec2::new(0.5, -1.)));
+    assert!(!aabb_contains_point(min, max, Vec2::new(0.5, -1.)));
 }
 
 #[test]
@@ -36,21 +36,21 @@ fn aabb_intersects_aabb_test() {
     let max_c = Vec2::new(0.5, 0.5);
 
     // an aabb should intersect itself
-    assert!(aabb_intersects_aabb(&min_a, &max_a, &min_a, &max_a));
+    assert!(aabb_intersects_aabb(min_a, max_a, min_a, max_a));
 
     // these aabbs do not intersect
-    assert!(!aabb_intersects_aabb(&min_a, &max_a, &min_b, &max_b));
-    assert!(!aabb_intersects_aabb(&min_c, &max_c, &min_b, &max_b));
+    assert!(!aabb_intersects_aabb(min_a, max_a, min_b, max_b));
+    assert!(!aabb_intersects_aabb(min_c, max_c, min_b, max_b));
 
     // these aabbs do intersect
-    assert!(aabb_intersects_aabb(&min_a, &max_a, &min_c, &max_c))
+    assert!(aabb_intersects_aabb(min_a, max_a, min_c, max_c))
 }
 
 #[test]
 fn get_vertices_aabb_test() {
     let min = Vec2::new(0., 0.);
     let max = Vec2::new(2.5, 2.5);
-    let vertices = get_vertices_aabb(&min, &max);
+    let vertices = get_vertices_aabb(min, max);
     assert!(vertices[0] == max);
     assert!(vertices[1] == Vec2::new(max.x, min.y));
     assert!(vertices[2] == min);
@@ -66,12 +66,12 @@ fn get_bounding_aabb_test() {
     let min_c = Vec2::new(-0.5, -0.5);
     let max_c = Vec2::new(0.5, 0.5);
 
-    let vertices: Vec<Vec2> = get_vertices_aabb(&min_a, &max_a)
+    let vertices: Vec<Vec2> = get_vertices_aabb(min_a, max_a)
         .into_iter()
         .chain(
-            get_vertices_aabb(&min_b, &max_b)
+            get_vertices_aabb(min_b, max_b)
                 .into_iter()
-                .chain(get_vertices_aabb(&min_c, &max_c).into_iter()),
+                .chain(get_vertices_aabb(min_c, max_c).into_iter()),
         )
         .collect();
 
@@ -81,7 +81,7 @@ fn get_bounding_aabb_test() {
 
     // the bounding box should contain every point
     for p in vertices {
-        assert!(aabb_contains_point(&min, &max, &p));
+        assert!(aabb_contains_point(min, max, p));
     }
 }
 
@@ -142,13 +142,13 @@ fn closest_point_on_line_segment_test() {
     let d = c + Vec2::new(-1., 1.) * 0.1; // a point a bit off the line perpandicular to ab
 
     // the points that define a line segment ought to be the closest point on the line segment
-    assert!(closest_point_on_line_segment(&a, &b, &a) == a);
-    assert!(closest_point_on_line_segment(&a, &b, &b) == b);
+    assert!(closest_point_on_line_segment(a, b, a) == a);
+    assert!(closest_point_on_line_segment(a, b, b) == b);
 
-    assert!(closest_point_on_line_segment(&a, &b, &c) == c);
-    assert!(closest_point_on_line_segment(&a, &b, &d) == c);
-    assert!(closest_point_on_line_segment(&a, &b, &Vec2::new(f32::MAX, f32::MAX)) == b);
-    assert!(closest_point_on_line_segment(&a, &b, &Vec2::new(f32::MIN, f32::MIN)) == a);
+    assert!(closest_point_on_line_segment(a, b, c) == c);
+    assert!(closest_point_on_line_segment(a, b, d) == c);
+    assert!(closest_point_on_line_segment(a, b, Vec2::new(f32::MAX, f32::MAX)) == b);
+    assert!(closest_point_on_line_segment(a, b, Vec2::new(f32::MIN, f32::MIN)) == a);
 }
 
 #[test]
@@ -156,8 +156,8 @@ fn point_is_on_left_side_of_line_test() {
     let a = Vec2::new(0., 0.);
     let b = Vec2::new(0.5, 1.);
 
-    assert!(point_is_on_left_side_of_line(&a, &b, &Vec2::new(0., 1.)));
-    assert!(!point_is_on_left_side_of_line(&a, &b, &Vec2::new(1., 0.)));
+    assert!(point_is_on_left_side_of_line(a, b, Vec2::new(0., 1.)));
+    assert!(!point_is_on_left_side_of_line(a, b, Vec2::new(1., 0.)));
 }
 
 #[test]
@@ -188,16 +188,16 @@ fn line_intersects_line_test() {
     let c_start = Vec2::new(0.5, 0.5);
     let c_end = Vec2::new(3., 3.);
 
-    let (a_intersects_b, _) = line_intersects_line(&a_start, &a_end, &b_start, &b_end);
-    let (b_intersects_a, _) = line_intersects_line(&b_start, &b_end, &a_start, &a_end);
+    let (a_intersects_b, _) = line_intersects_line(a_start, a_end, b_start, b_end);
+    let (b_intersects_a, _) = line_intersects_line(b_start, b_end, a_start, a_end);
     let (a_intersects_c, a_intersects_c_point) =
-        line_intersects_line(&a_start, &a_end, &c_start, &c_end);
+        line_intersects_line(a_start, a_end, c_start, c_end);
     let (c_intersects_a, c_intersects_a_point) =
-        line_intersects_line(&c_start, &c_end, &a_start, &a_end);
+        line_intersects_line(c_start, c_end, a_start, a_end);
     let (b_intersects_c, b_intersects_c_point) =
-        line_intersects_line(&b_start, &b_end, &c_start, &c_end);
+        line_intersects_line(b_start, b_end, c_start, c_end);
     let (c_intersects_b, c_intersects_b_point) =
-        line_intersects_line(&c_start, &c_end, &b_start, &b_end);
+        line_intersects_line(c_start, c_end, b_start, b_end);
 
     assert!(!a_intersects_b);
     assert!(!b_intersects_a);
@@ -249,4 +249,19 @@ fn get_bounding_circle_test() {
     let diff_center = (circle_center_a - circle_center_b).length();
     assert!(diff_radius <= 5.96046448E-8);
     assert!(diff_center <= 6.66400197E-8);
+}
+
+#[test]
+fn polygon_contains_point_test() {
+    let triangle = vec![
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.5, 0.86602540378),
+        Vec2::new(1., 0.),
+    ];
+
+    let p_inside = Vec2::new(0.5, 0.5);
+    let p_outside = Vec2::new(999., 999.);
+
+    assert!(polygon_contains_point(&triangle, p_inside));
+    assert!(!polygon_contains_point(&triangle, p_outside));
 }
