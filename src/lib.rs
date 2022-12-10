@@ -1,6 +1,4 @@
-use core::num;
-
-use bevy::{math::Vec2, prelude::Res};
+use bevy::math::Vec2;
 
 #[cfg(test)]
 mod tests;
@@ -259,8 +257,8 @@ fn calculate_circle_test() {
 
     // calculate_circle should return an error if num_points_on_circle is any value greater than 3
     match calculate_circle(4, &points) {
-        Err(e) => assert!(true),
-        Ok(x) => assert!(false),
+        Err(_) => assert!(true),
+        Ok(_) => assert!(false),
     }
 
     let (center_a, radius_a) = calculate_circle(1, &points).unwrap();
