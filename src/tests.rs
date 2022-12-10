@@ -249,6 +249,16 @@ fn get_bounding_circle_test() {
     let diff_center = (circle_center_a - circle_center_b).length();
     assert!(diff_radius <= 5.96046448E-8);
     assert!(diff_center <= 6.66400197E-8);
+
+    let single_point = vec![Vec2::new(1., 1.)];
+    let (circle_center_c, circle_radius_c) = get_bounding_circle(&single_point).unwrap();
+    assert!(circle_center_c == single_point[0]);
+    assert!(circle_radius_c == 0.);
+
+    let two_points = vec![Vec2::new(1., 1.), Vec2::new(2., 2.)];
+    let (circle_center_d, circle_radius_d) = get_bounding_circle(&two_points).unwrap();
+    assert!(circle_center_d == (two_points[0] + two_points[1]) / 2.);
+    assert!(circle_radius_d == (two_points[1] - two_points[0]).length() / 2.);
 }
 
 #[test]
