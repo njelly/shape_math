@@ -91,16 +91,16 @@ fn circle_contains_point_test() {
     let r = 1.;
 
     // a circle always contains it's center
-    assert!(circle_contains_point(&center, &r, &center));
+    assert!(circle_contains_point(center, r, center));
 
-    // a circle contains a point on it's perimeter
-    assert!(circle_contains_point(&center, &r, &Vec2::new(r, 0.)));
+    // a circle DOES NOT contains a point on it's circumference
+    assert!(!circle_contains_point(center, r, Vec2::new(r, 0.)));
 
     // a circle does not contain a point barely beyond its radius
     assert!(!circle_contains_point(
-        &center,
-        &r,
-        &Vec2::new(r + f32::EPSILON, 0.)
+        center,
+        r,
+        Vec2::new(r + f32::EPSILON, 0.)
     ));
 }
 
@@ -113,8 +113,8 @@ fn circle_intersects_aabb_test() {
     let center = Vec2::new(0.5, 1.1);
     let r: f32 = 0.2;
 
-    assert!(circle_intersects_aabb(&center, &r, &min_a, &max_a));
-    assert!(!circle_intersects_aabb(&center, &r, &min_b, &max_b));
+    assert!(circle_intersects_aabb(center, r, min_a, max_a));
+    assert!(!circle_intersects_aabb(center, r, min_b, max_b));
 }
 
 #[test]
@@ -222,4 +222,31 @@ fn get_circle_from_triangle_test() {
     let (circle_center, circle_radius) = get_circle_from_triangle(&triangle).unwrap();
     assert!((circle_center - Vec2::new(0.5, 0.28867513)).length() <= f32::EPSILON);
     assert!((circle_radius - 0.5773502).abs() <= f32::EPSILON);
+}
+
+#[test]
+fn get_bounding_circle_test() {
+    let equilateral_triangle = vec![
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.5, 0.86602540378),
+        Vec2::new(1., 0.),
+    ];
+
+    let some_points = vec![
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.5, 0.86602540378),
+        Vec2::new(0.5, 0.5), // this one shouldn't affect the bounding circle
+        Vec2::new(0.1, 0.4), // ditto
+        Vec2::new(1., 0.),
+    ];
+
+    let (circle_center_a, circle_radius_a) =
+        get_circle_from_triangle(&equilateral_triangle).unwrap();
+    let (circle_center_b, circle_radius_b) = get_bounding_circle(&some_points).unwrap();
+
+    // these are calculated differently so there will be rounding errors
+    let diff_radius = (circle_radius_a - circle_radius_b).abs();
+    let diff_center = (circle_center_a - circle_center_b).length();
+    assert!(diff_radius <= 5.96046448E-8);
+    assert!(diff_center <= 6.66400197E-8);
 }

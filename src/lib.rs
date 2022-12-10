@@ -1,4 +1,6 @@
-use bevy::math::Vec2;
+use core::num;
+
+use bevy::{math::Vec2, prelude::Res};
 
 #[cfg(test)]
 mod tests;
@@ -41,11 +43,11 @@ pub fn get_bounding_aabb(points: &Vec<Vec2>) -> (Vec2, Vec2) {
     (min, max)
 }
 
-pub fn circle_contains_point(center: &Vec2, radius: &f32, p: &Vec2) -> bool {
-    (*p - *center).length_squared() <= radius * radius
+pub fn circle_contains_point(center: Vec2, radius: f32, p: Vec2) -> bool {
+    (p - center).length_squared() < radius * radius
 }
 
-pub fn circle_intersects_aabb(center: &Vec2, r: &f32, aabb_min: &Vec2, aabb_max: &Vec2) -> bool {
+pub fn circle_intersects_aabb(center: Vec2, r: f32, aabb_min: Vec2, aabb_max: Vec2) -> bool {
     if aabb_contains_point(&aabb_min, &aabb_max, &center) {
         return true;
     }
@@ -55,7 +57,7 @@ pub fn circle_intersects_aabb(center: &Vec2, r: &f32, aabb_min: &Vec2, aabb_max:
         let next_index = (i + 1) % vertices.len();
         let closest_point_on_edge =
             closest_point_on_line_segment(v, &vertices[next_index], &center);
-        if circle_contains_point(&center, &r, &closest_point_on_edge) {
+        if circle_contains_point(center, r, closest_point_on_edge) {
             return true;
         }
     }
@@ -183,38 +185,97 @@ pub fn get_circle_from_triangle(vertices: &Vec<Vec2>) -> Result<(Vec2, f32), Str
     Ok((circle_center, circle_radius))
 }
 
-pub fn get_bounding_circle(points: &Vec<Vec2>) -> (Vec2, f32) {
+pub fn get_bounding_circle(points: &Vec<Vec2>) -> Result<(Vec2, f32), String> {
     let mut points_on_circle: Vec<Vec2> = Vec::with_capacity(3);
+    welzl(points.len(), 0, &points, &mut points_on_circle)
+}
 
-    fn welzl(
-        num_unchecked: usize,
-        num_points_on_cicle: usize,
-        points_on_circle: &mut Vec<Vec2>,
-    ) -> (Vec2, f32) {
-        if num_unchecked == 0 || num_points_on_cicle == 3 {
-            return calculate_circle(num_points_on_cicle, points_on_circle);
+fn welzl(
+    num_unchecked: usize,
+    num_points_on_circle: usize,
+    points: &Vec<Vec2>,
+    points_on_circle: &mut Vec<Vec2>,
+) -> Result<(Vec2, f32), String> {
+    if num_unchecked <= 0 || num_points_on_circle == 3 {
+        calculate_circle(num_points_on_circle, points_on_circle)
+    } else {
+        let p = points[num_unchecked - 1];
+        match welzl(
+            num_unchecked - 1,
+            num_points_on_circle,
+            &points,
+            points_on_circle,
+        ) {
+            Ok((center, radius)) => {
+                if circle_contains_point(center, radius, p) {
+                    Ok((center, radius))
+                } else {
+                    if points_on_circle.len() <= num_points_on_circle {
+                        points_on_circle.push(p);
+                    } else {
+                        points_on_circle[num_points_on_circle] = p;
+                    }
+                    welzl(
+                        num_unchecked - 1,
+                        num_points_on_circle + 1,
+                        points,
+                        points_on_circle,
+                    )
+                }
+            }
+            Err(e) => Err(e),
         }
+    }
+}
 
-        let p = points_on_circle[num_unchecked - 1];
-        let (c, r) = welzl(num_unchecked - 1, num_points_on_cicle, points_on_circle);
-        if circle_contains_point(&c, &r, &p) {
-            return (c, r);
+fn calculate_circle(
+    num_points_on_circle: usize,
+    points_on_circle: &Vec<Vec2>,
+) -> Result<(Vec2, f32), String> {
+    match num_points_on_circle {
+        0 => Ok((Vec2::new(0., 0.), 0.)),
+        1 => Ok((points_on_circle[0], 0.)),
+        2 => {
+            let c = (points_on_circle[0] + points_on_circle[1]) / 2.;
+            let r = (c - points_on_circle[0]).length();
+            Ok((c, r))
         }
+        3 => Ok(get_circle_from_triangle(points_on_circle).unwrap()),
+        _ => Err(format!(
+            "num_points_on_circle is invalid: {}",
+            num_points_on_circle
+        )),
+    }
+}
 
-        points_on_circle[num_points_on_cicle] = p;
-        welzl(num_unchecked, num_points_on_cicle, points_on_circle)
+#[test]
+fn calculate_circle_test() {
+    // equilateral triangle, this took way longer to figure out than I'd like to admit 🥲
+    let points = vec![
+        Vec2::new(1., 1.),
+        Vec2::new(2., 2.),
+        Vec2::new(2.366025, 0.6339746),
+    ];
+
+    // calculate_circle should return an error if num_points_on_circle is any value greater than 3
+    match calculate_circle(4, &points) {
+        Err(e) => assert!(true),
+        Ok(x) => assert!(false),
     }
 
-    fn calculate_circle(num_points_on_circle: usize, points_on_circle: &Vec<Vec2>) -> (Vec2, f32) {
-        return match num_points_on_circle {
-            1 => (points_on_circle[0], 0.),
-            2 => (
-                (points_on_circle[1] + points_on_circle[0]) / 2.,
-                (points_on_circle[1] - points_on_circle[0]).length() / 2.,
-            ),
-            _ => get_circle_from_triangle(points_on_circle).unwrap(),
-        };
-    }
+    let (center_a, radius_a) = calculate_circle(1, &points).unwrap();
+    assert!(center_a == points[0]);
+    assert!(radius_a == 0.);
 
-    welzl(points.len(), 0, &mut points_on_circle)
+    let (center_b, radius_b) = calculate_circle(2, &points).unwrap();
+    assert!(center_b == Vec2::new(1.5, 1.5));
+    assert!(radius_b == (Vec2::new(1.5, 1.5) - points[0]).length());
+
+    let (center_c, radius_c) = calculate_circle(3, &points).unwrap();
+    // since this is a equilateral triangle, we can easily calculate the center as the average of all the points
+    let expected_center = (points[0] + points[1] + points[2]) / 3.;
+    let expected_radius = (expected_center - points[0]).length();
+    // there's going to be some rounding errors since these will be calculated differently
+    assert!((center_c - expected_center).length() <= 1.68587391E-7);
+    assert!(f32::abs(expected_radius - radius_c) <= 1.1920929E-7);
 }
