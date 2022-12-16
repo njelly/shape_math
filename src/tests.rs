@@ -320,13 +320,34 @@ fn polygon_intersects_circle_test() {
     assert!(polygon_intersects_circle(&triangle, center_c, radius_c));
 }
 
-//#[test]
-//fn polygon_intersects_polygon_test() {
-//    let triangle_a = vec![
-//        Vec2::new(0.0, 0.0),
-//        Vec2::new(0.5, 0.86602540378),
-//        Vec2::new(1., 0.),
-//    ];
-//
-//    let triangle_b = aabb
-//}
+#[test]
+fn polygon_intersects_polygon_test() {
+    let triangle_a = vec![
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.5, 0.86602540378),
+        Vec2::new(1., 0.),
+    ];
+
+    // huge triangle, should intersect everything
+    let triangle_b = vec![
+        Vec2::new(-999., -999.),
+        Vec2::new(0.0, 999.),
+        Vec2::new(999., -999.),
+    ];
+
+    let triangle_c = vec![
+        Vec2::new(0.0, 0.86602540378),
+        Vec2::new(1., 0.86602540378),
+        Vec2::new(0.5, 0.0),
+    ];
+
+    let triangle_d = vec![
+        Vec2::new(0.0, 0.0) + Vec2::new(999., 999.),
+        Vec2::new(0.5, 0.86602540378) + Vec2::new(999., 999.),
+        Vec2::new(1., 0.) + Vec2::new(999., 999.),
+    ];
+
+    assert!(!polygon_intersects_polygon(&triangle_a, &triangle_d));
+    assert!(polygon_intersects_polygon(&triangle_a, &triangle_c));
+    assert!(polygon_intersects_polygon(&triangle_a, &triangle_b));
+}
