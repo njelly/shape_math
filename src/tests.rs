@@ -236,8 +236,8 @@ fn get_bounding_circle_test() {
         Vec2::new(0.0, 0.0),
         Vec2::new(0.5, 0.86602540378),
         Vec2::new(0.5, 0.5), // this one shouldn't affect the bounding circle
-        Vec2::new(0.1, 0.4), // ditto
         Vec2::new(1., 0.),
+        Vec2::new(0.1, 0.4), // ditto
     ];
 
     let (circle_center_a, circle_radius_a) =
@@ -275,3 +275,58 @@ fn polygon_contains_point_test() {
     assert!(polygon_contains_point(&triangle, p_inside));
     assert!(!polygon_contains_point(&triangle, p_outside));
 }
+
+#[test]
+fn polygon_intersects_aabb_test() {
+    let triangle = vec![
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.5, 0.86602540378),
+        Vec2::new(1., 0.),
+    ];
+
+    // a polygon intersects an aabb that fully contains it
+    let min_a = Vec2::new(-999., -999.);
+    let max_a = Vec2::new(999., 999.);
+    assert!(polygon_intersects_aabb(&triangle, min_a, max_a));
+
+    // a polygon intersects an aabb that is inside of it
+    let min_b = Vec2::new(0.2, 0.2);
+    let max_b = Vec2::new(0.4, 0.4);
+    assert!(polygon_intersects_aabb(&triangle, min_b, max_b));
+
+    let min_c = Vec2::new(-999., 0.3);
+    let max_c = Vec2::new(999., 0.4);
+    assert!(polygon_intersects_aabb(&triangle, min_c, max_c));
+}
+
+#[test]
+fn polygon_intersects_circle_test() {
+    let triangle = vec![
+        Vec2::new(0.0, 0.0),
+        Vec2::new(0.5, 0.86602540378),
+        Vec2::new(1., 0.),
+    ];
+
+    let center_a = Vec2::new(0., 0.);
+    let radius_a = 9999.;
+    assert!(polygon_intersects_circle(&triangle, center_a, radius_a));
+
+    let center_b = Vec2::new(0.2, 0.2);
+    let radius_b = 0.001;
+    assert!(polygon_intersects_circle(&triangle, center_b, radius_b));
+
+    let center_c = Vec2::new(0.1, 0.1);
+    let radius_c = 0.1;
+    assert!(polygon_intersects_circle(&triangle, center_c, radius_c));
+}
+
+//#[test]
+//fn polygon_intersects_polygon_test() {
+//    let triangle_a = vec![
+//        Vec2::new(0.0, 0.0),
+//        Vec2::new(0.5, 0.86602540378),
+//        Vec2::new(1., 0.),
+//    ];
+//
+//    let triangle_b = aabb
+//}

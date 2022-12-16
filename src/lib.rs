@@ -1,3 +1,6 @@
+use core::num;
+use std::f32::consts::PI;
+
 use bevy::math::Vec2;
 
 #[cfg(test)]
@@ -288,6 +291,67 @@ pub fn polygon_intersects_aabb(vertices: &Vec<Vec2>, aabb_min: Vec2, aabb_max: V
     }
 
     false
+}
+
+pub fn polygon_intersects_circle(vertices: &Vec<Vec2>, center: Vec2, radius: f32) -> bool {
+    if polygon_contains_point(vertices, center) {
+        return true;
+    }
+
+    for i in 0..vertices.len() {
+        let next_index = (i + 1) % vertices.len();
+        let closest_point = closest_point_on_line_segment(vertices[i], vertices[next_index], center);
+        if circle_contains_point(center, radius, closest_point) {
+            return true;
+        }
+    }
+
+    false
+}
+
+pub fn polygon_intersects_polygon(vertices_a: &Vec<Vec2>, vertices_b: &Vec<Vec2>) -> bool {
+    for i in 0..vertices_a.len() {
+        if polygon_contains_point(vertices_b, vertices_a[i]) {
+            return true;
+        }
+    }
+
+    for i in 0..vertices_b.len() {
+        if polygon_contains_point(vertices_a, vertices_b[i]) {
+            return true;
+        }
+    }
+
+    for i in 0..vertices_a.len() {
+        let next_index_a = (i + 1) % vertices_a.len();
+        for j in 0..vertices_b.len() {
+            let next_index_b = (j + 1) % vertices_b.len();
+            if line_segment_intersects_line_segment(vertices_a[i], vertices_a[next_index_a], vertices_b[j], vertices_b[next_index_b]).0 {
+                return true;
+            }
+        }
+    }
+
+    false
+}
+
+pub fn polygon_from_aabb(min: Vec2, max: Vec2) -> Vec<Vec2> {
+    vec![
+        max,
+        Vec2::new(max.x, min.y),
+        min,
+        Vec2::new(min.x, max.y)
+    ]
+}
+
+pub fn polygon_from_circle(center: Vec2, radius: f32, num_vertices: usize) -> Vec<Vec2> {
+    let mut vertices: Vec<Vec2> = Vec::with_capacity(num_vertices);
+    let angle_step = PI * 2. / (num_vertices as f32);
+    for i in 0..num_vertices {
+        vertices.push(center + radius * Vec2::new((i as f32 * angle_step).cos(), (i as f32 * angle_step).sin()));
+    }
+
+    vertices
 }
 
 #[test]
