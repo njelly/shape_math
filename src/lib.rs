@@ -1,9 +1,5 @@
-use std::f32::consts::PI;
-
 use bevy::math::Vec2;
-
-#[cfg(test)]
-mod tests;
+use std::f32::consts::PI;
 
 pub fn aabb_contains_point(min: Vec2, max: Vec2, p: Vec2) -> bool {
     p.x >= min.x && p.x <= max.x && p.y >= min.y && p.y <= max.y

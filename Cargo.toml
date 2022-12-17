@@ -1,6 +1,10 @@
 [package]
-name = "shape_math"
+name = "shape_math_2d"
+description = "A collection of functions for solving common 2D geometry problems."
+homepage = "https://github.com/njelly/shape_math_2d"
+repository = "https://github.com/njelly/shape_math_2d"
 version = "0.1.0"
+authors = ["Nathaniel Ellingson"]
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
