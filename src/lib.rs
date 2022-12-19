@@ -355,6 +355,49 @@ pub fn polygon_from_circle(center: Vec2, radius: f32, num_vertices: usize) -> Ve
     vertices
 }
 
+pub fn get_bounding_polygon(points: &Vec<Vec2>) -> Vec<Vec2> {
+    let mut vertices: Vec<Vec2> = Vec::with_capacity(points.len());
+    let mut num_bounding_vertices: usize = 0;
+    let mut left_most_index: usize = 0;
+    for i in 1..points.len() {
+        if points[i].x < points[left_most_index].x {
+            left_most_index = i;
+        }
+    }
+
+    let mut p = left_most_index;
+    loop {
+        num_bounding_vertices += 1;
+        vertices[num_bounding_vertices] = points[p];
+        let mut q = (p + 1) % points.len();
+        for i in 0..points.len() {
+            if orientation(points[p], points[i], points[q]) == 2 {
+                q = i;
+            }
+        }
+
+        p = q;
+
+        if p != left_most_index {
+            break;
+        }
+    }
+
+    vertices.shrink_to_fit();
+    vertices
+}
+
+fn orientation(p: Vec2, q: Vec2, r: Vec2) -> usize {
+    let val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+    if val == 0. {
+        0
+    } else if val > 0. {
+        1
+    } else {
+        2
+    }
+}
+
 #[test]
 fn calculate_circle_test() {
     // equilateral triangle, this took way longer to figure out than I'd like to admit 🥲
