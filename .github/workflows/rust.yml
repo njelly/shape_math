@@ -22,6 +22,7 @@ jobs:
 
     steps:
     - run: sudo apt install librust-alsa-sys-dev
+    - run: sudo apt-get install libudev-dev
     - uses: actions/checkout@v3
     - run: rustup update ${{ matrix.toolchain }} && rustup default ${{ matrix.toolchain }}
     - name: Build
